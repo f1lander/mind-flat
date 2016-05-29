@@ -1,0 +1,42 @@
+<ion-view view-title="Arduino & Apache Cordova + Ionic">
+    <ion-content class="padding">
+     
+            <ion-toggle ng-model="btBluehTooh" toggle-class="toggle-calm" ng-checked="false" ng-disabled="true">Bluetooth</ion-toggle>
+            <div ng-show="btBluehTooh">
+                <button class="button button-block button-positive" ng-click="listar()">
+                    Listar Dispositivos
+                </button>
+            </div>
+            <ion-list ng-show="btBluehTooh">
+                <ion-item ng-repeat="item in listBT "
+                          collection-item-width="'100%'" ng-click="connect(item.id)" >
+                    {{item.name}}
+                </ion-item>
+            </ion-list>
+            
+
+        <div class="list">
+            <div class="list">
+                <div class="item item-divider">
+                    Información a Transmitir
+                </div>
+                <label class="item item-input">
+                    <textarea placeholder="Mensaje" ng-model="dataToSend" ng-maxlength="201"></textarea>
+                </label>
+                <div class="padding">
+                    <div class="button-bar">
+                        <a class="button button-block button-positive" ng-click="dataToSend=''">Limpiar</a>
+                        <a class="button button-block button-positive" ng-click="send(dataToSend)">Enviar</a>
+                    </div>
+                </div>
+            </div>
+            <div class="item item-divider">
+                Estado
+            </div>
+            <div class="item">
+                <pre ng-bind="stateNotification"></pre>
+            </div>
+        </div>
+
+    </ion-content>
+</ion-view>

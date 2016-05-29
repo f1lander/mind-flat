@@ -1,10 +1,10 @@
 angular.module('starter.controllers', [])
 
-.controller('GameCtrl', function($scope) {
-  
-  var mainState = {
+  .controller('GameCtrl', function ($scope) {
 
-    preload: function() {
+    var mainState = {
+
+      preload: function () {
         game.stage.backgroundColor = '#3498db';
 
         game.load.image('bird', 'assets/bird.png');
@@ -14,9 +14,11 @@ angular.module('starter.controllers', [])
         game.load.audio('jump', 'assets/jump.wav');
 
         game.load.image('jumpbutton', 'assets/jump.png');
-    },
+      },
 
-    create: function() {
+      create: function () {
+        sprite.scale.x = value;
+        sprite.scale.y = value;
         game.physics.startSystem(Phaser.Physics.ARCADE);
 
         this.pipes = game.add.group();
@@ -38,37 +40,37 @@ angular.module('starter.controllers', [])
 
         // Add the jump sound
         this.jumpSound = this.game.add.audio('jump');
-    },
+      },
 
-    update: function() {
+      update: function () {
         if (this.bird.inWorld == false)
-            this.restartGame();
+          this.restartGame();
 
         game.physics.arcade.overlap(this.bird, this.pipes, this.hitPipe, null, this);
 
         // Slowly rotate the bird downward, up to a certain point.
         if (this.bird.angle < 20)
-            this.bird.angle += 1;
-    },
+          this.bird.angle += 1;
+      },
 
-    jump: function() {
+      jump: function () {
         // If the bird is dead, he can't jump
         if (this.bird.alive == false)
-            return;
+          return;
 
         this.bird.body.velocity.y = -350;
 
         // Jump animation
-        game.add.tween(this.bird).to({angle: -20}, 100).start();
+        game.add.tween(this.bird).to({ angle: -20 }, 100).start();
 
         // Play sound
         this.jumpSound.play();
-    },
+      },
 
-    hitPipe: function() {
+      hitPipe: function () {
         // If the bird has already hit a pipe, we have nothing to do
         if (this.bird.alive == false)
-            return;
+          return;
 
         // Set the alive property of the bird to false
         this.bird.alive = false;
@@ -77,38 +79,98 @@ angular.module('starter.controllers', [])
         this.game.time.events.remove(this.timer);
 
         // Go through all the pipes, and stop their movement
-        this.pipes.forEachAlive(function(p){
-            p.body.velocity.x = 0;
+        this.pipes.forEachAlive(function (p) {
+          p.body.velocity.x = 0;
         }, this);
-    },
+      },
 
-    restartGame: function() {
+      restartGame: function () {
         game.state.start('main');
-    },
+      },
 
-    addOnePipe: function(x, y) {
+      addOnePipe: function (x, y) {
         var pipe = this.pipes.getFirstDead();
 
         pipe.reset(x, y);
         pipe.body.velocity.x = -200;
         pipe.checkWorldBounds = true;
         pipe.outOfBoundsKill = true;
-    },
+      },
 
-    addRowOfPipes: function() {
-        var hole = Math.floor(Math.random()*5)+1;
+      addRowOfPipes: function () {
+        var hole = Math.floor(Math.random() * 5) + 1;
 
         for (var i = 0; i < 8; i++)
-            if (i != hole && i != hole +1)
-                this.addOnePipe(400, i*60+10);
+          if (i != hole && i != hole + 1)
+            this.addOnePipe(400, i * 60 + 10);
 
         this.score += 1;
         this.labelScore.text = this.score;
-    },
-};
-  
-})
+      },
+    };
 
-.controller('ConnectBLECtrl', function () {
-  
-});
+  })
+
+  .controller('ConnectCtrl', function ($ionicPlatform, $scope, $cordovaBluetoothSerial, $state, $timeout, btService) {
+
+    var verify = function () {
+      $ionicPlatform.ready(function () {
+        $cordovaBluetoothSerial.isEnabled().then(
+          function () {
+            $scope.listBT = btService.all();
+            $scope.btBluehTooh = true;
+            console.log("Encendido");
+            
+          },
+          function () {
+            $scope.btBluehTooh = false;
+            console.log("Apagado");
+          });
+      });
+      $timeout(verify, 3000);
+    }
+
+    $scope.listar = function () {
+      var promise = btService.all();
+      promise.then(function (data) {
+        $scope.listBT = data;
+      },
+        function (errorPl) {
+          alert(errorPl);
+        });
+    };
+
+    $timeout(verify, 3000);
+
+    $scope.connect = function (id) {
+      $scope.conneccion = btService.get(id);
+
+      $ionicPlatform.ready(function () {
+        $cordovaBluetoothSerial.connect($scope.conneccion.id).then(
+          function (data) {
+            $scope.stateNotification = "Conectado";
+            console.log($scope.stateNotification);
+            $cordovaBluetoothSerial.read(function (data) {
+              console.log(data);
+            }, function (err) {
+              console.log(err);
+            });
+          },
+          function (data) {
+            $scope.stateNotification = "Error" + data;
+          });
+      });
+
+      $scope.send = function (data) {
+        $ionicPlatform.ready(function () {
+          $cordovaBluetoothSerial.write(data + '\n').then(function (result) {
+            alert("Enviado Correctamente!!!");
+          },
+            function (error) {
+              alert(error);
+            });
+        });
+      };
+    }
+
+  });
